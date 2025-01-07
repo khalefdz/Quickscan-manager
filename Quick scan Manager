@@ -1,0 +1,80 @@
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+try:
+    import cv2
+    import numpy as np
+    from pyzbar.pyzbar import decode
+    CAMERA_AVAILABLE = True
+except ImportError:
+    CAMERA_AVAILABLE = False
+    messagebox.showwarning("Attention", "Module OpenCV non disponible. Les fonctionnalités de scan seront désactivées.")
+import pandas as pd
+from PIL import Image, ImageTk
+import pygame
+import datetime
+import os
+
+class ScanStockPro:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("QuickScan Manager")
+        self.root.geometry("1200x800")
+        
+        # Initialisation du son
+        try:
+            pygame.mixer.init()
+            if os.path.exists("sounds/success.wav"):
+                self.success_sound = pygame.mixer.Sound("sounds/success.wav")
+            else:
+                messagebox.warning("Attention", "Fichier son 'success.wav' manquant")
+                self.success_sound = None
+            
+            if os.path.exists("sounds/error.wav"):
+                self.error_sound = pygame.mixer.Sound("sounds/error.wav")
+            else:
+                messagebox.warning("Attention", "Fichier son 'error.wav' manquant")
+                self.error_sound = None
+        except pygame.error:
+            messagebox.warning("Attention", "Impossible d'initialiser le système audio")
+            self.success_sound = None
+            self.error_sound = None
+        
+        # Initialisation des données
+        self.camera = None
+        self.excel_data = None
+        self.scan_results = []
+        self.ecarts = []
+        
+        # Configuration de l'interface
+        self.setup_ui()
+
+    def setup_ui(self):
+        # Configuration principale
+        main_frame = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Panel gauche
+        left_frame = ttk.Frame(main_frame)
+        main_frame.add(left_frame)
+        
+        # Zone caméra
+        camera_frame = ttk.LabelFrame(left_frame, text="Caméra")
+        camera_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.camera_label = ttk.Label(camera_frame)
+        self.camera_label.pack(fill=tk.BOTH, expand=True)
+        
+        # Boutons de contrôle
+        control_frame = ttk.LabelFrame(left_frame, text="Contrôles")
+        control_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Bouton Excel
+        ttk.Button(control_frame, text="Charger Excel", command=self.load_excel).pack(side=tk.LEFT, padx=5, pady=5)
+        
+        # Bouton Scan
+        self.scan_btn = ttk.Button(control_frame, text="Démarrer Scan", command=self.toggle_scan)
+        self.scan_btn.pack(side=tk.LEFT, padx=5, pady=5)
+        
+        # Bouton Export
+        ttk.Button(control_frame, text="Exporter Résultats", command=self.export_results).pack(side=tk.LEFT, padx=5, pady=5)
+
+{{ ... }}
